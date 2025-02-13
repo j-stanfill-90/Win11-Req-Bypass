@@ -39,6 +39,11 @@ iwr -useb "https://raw.githubusercontent.com/Win11Modder/Win11-Req-Bypass/main/W
    .\Win11_Bypass.ps1 -r
    ```
 
+If no PowerShell scripts have never been run on the target machine and script execution is restricted, you may need to run the following command first:
+ ```powershell
+  Set-ExecutionPolicy RemoteSigned
+   ```
+
 ### Notes
 - Use at your own risk. This script modifies system settings and registry entries.
 - Run PowerShell as **Administrator** for full functionality.
