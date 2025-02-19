@@ -1,14 +1,10 @@
-<#
+      <#
 .SYNOPSIS
 Bypasses Windows 11 installation and update restrictions and optionally performs a Windows Update reset.
 
 .DESCRIPTION
 This PowerShell script modifies the registry so that Windows 11 can be installed and updated even if the hardware does not meet Microsoft's official requirements.
 The script adds registry entries that bypass:
-- TPM (Trusted Platform Module) check
-- Minimum RAM requirement
-- Secure Boot requirement
-- CPU compatibility requirement
 - Compatibility checks used by Windows Update (to allow the update to work directly through Windows Update)
 - Disables Windows telemetry to try to ensure that restrictions do not come into effect in the future
 
@@ -121,17 +117,62 @@ if ($r) {
     Read-Host "Press Enter to continue"
 }
 
+Write-Host "`n*** Configure Windows Update Target Release Version ***" -ForegroundColor Cyan
+Write-Host "1 (or press Enter) - Set default target release version to 24H2"
+Write-Host "2 - Set a custom target release version"
+Write-Host "3 - Remove target release version from registry"
+
+$choice = Read-Host "Select an option (1-3)"
+
+if ($choice -eq "" -or $choice -eq "1") {
+    $targetRelease = "24H2"
+    Write-Host "Setting Windows Update target release to $targetRelease..." -ForegroundColor Cyan
+    $WinUpdatePath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"
+    if (!(Test-Path $WinUpdatePath)) {
+        New-Item -Path $WinUpdatePath -Force | Out-Null
+    }
+    New-ItemProperty -Path $WinUpdatePath -Name "ProductVersion" -Value "Windows 11" -PropertyType String -Force
+    New-ItemProperty -Path $WinUpdatePath -Name "TargetReleaseVersion" -Value 1 -PropertyType DWord -Force
+    New-ItemProperty -Path $WinUpdatePath -Name "TargetReleaseVersionInfo" -Value $targetRelease -PropertyType String -Force
+    Write-Host "Target release version set to $targetRelease. Continuing with bypass modifications..."
+}
+elseif ($choice -eq "2") {
+    $targetRelease = Read-Host "Enter the Windows 11 target release version (e.g., 23H2, 24H2)"
+    Write-Host "Setting Windows Update target release to $targetRelease..." -ForegroundColor Cyan
+    $WinUpdatePath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"
+    if (!(Test-Path $WinUpdatePath)) {
+        New-Item -Path $WinUpdatePath -Force | Out-Null
+    }
+    New-ItemProperty -Path $WinUpdatePath -Name "ProductVersion" -Value "Windows 11" -PropertyType String -Force
+    New-ItemProperty -Path $WinUpdatePath -Name "TargetReleaseVersion" -Value 1 -PropertyType DWord -Force
+    New-ItemProperty -Path $WinUpdatePath -Name "TargetReleaseVersionInfo" -Value $targetRelease -PropertyType String -Force
+    Write-Host "Target release version set to $targetRelease. Continuing with bypass modifications..."
+}
+elseif ($choice -eq "3") {
+    Write-Host "Removing Windows Update target release settings..." -ForegroundColor Cyan
+    $WinUpdatePath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"
+    Remove-ItemProperty -Path $WinUpdatePath -Name "ProductVersion" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path $WinUpdatePath -Name "TargetReleaseVersion" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path $WinUpdatePath -Name "TargetReleaseVersionInfo" -ErrorAction SilentlyContinue
+    Write-Host "Target release settings removed. Exiting..."
+    exit
+}
+else {
+    Write-Host "Invalid option selected. Exiting..." -ForegroundColor Red
+    exit
+}
+
+
 Write-Host "`n*** Bypassing Windows 11 installation and update restrictions ***" -ForegroundColor Cyan
 Write-Host "*** Modifying the registry, make sure you know what you are doing! ***`n" -ForegroundColor Yellow
 
 # Define registry paths
-$labConfigPath = "HKLM:\SYSTEM\Setup\LabConfig"
 $moSetupPath = "HKLM:\SYSTEM\Setup\MoSetup"
 $appCompatFlagsPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags"
 $hwReqChkPath = "$appCompatFlagsPath\HwReqChk"
 
 # Create registry keys if they do not exist
-@($labConfigPath, $moSetupPath, $hwReqChkPath) | ForEach-Object {
+@($moSetupPath, $hwReqChkPath) | ForEach-Object {
     if (-not (Test-Path $_)) {
         New-Item -Path $_ -Force | Out-Null
     }
@@ -139,10 +180,6 @@ $hwReqChkPath = "$appCompatFlagsPath\HwReqChk"
 
 # Add registry entries (bypass hardware requirements)
 @(
-    @{ Path = $labConfigPath; Name = "BypassTPMCheck"; Value = 1 },
-    @{ Path = $labConfigPath; Name = "BypassRAMCheck"; Value = 1 },
-    @{ Path = $labConfigPath; Name = "BypassSecureBootCheck"; Value = 1 },
-    @{ Path = $labConfigPath; Name = "BypassCPUCheck"; Value = 1 },
     @{ Path = $moSetupPath; Name = "AllowUpgradesWithUnsupportedTPMOrCPU"; Value = 1 }
 ) | ForEach-Object {
     New-ItemProperty -Path $_.Path -Name $_.Name -Value $_.Value -PropertyType DWord -Force
@@ -182,16 +219,6 @@ if (-not (Test-Path $uhncKey)) {
 }
 New-ItemProperty -Path $uhncKey -Name "SV2" -Value 0 -PropertyType DWord -Force | Out-Null
 
-# Set Windows Update target release settings
-Write-Host "`n*** Configuring Windows Update to fetch the Windows 11 24H2 update ***" -ForegroundColor Cyan
-$WinUpdatePath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"
-if (!(Test-Path $WinUpdatePath)) {
-    New-Item -Path $WinUpdatePath -Force | Out-Null
-}
-New-ItemProperty -Path $WinUpdatePath -Name "ProductVersion" -Value "Windows 11" -PropertyType String -Force
-New-ItemProperty -Path $WinUpdatePath -Name "TargetReleaseVersion" -Value 1 -PropertyType DWord -Force
-New-ItemProperty -Path $WinUpdatePath -Name "TargetReleaseVersionInfo" -Value "24H2" -PropertyType String -Force
-
 # Set the registry key AllowTelemetry to 0
 Write-Host "Setting the AllowTelemetry registry key to 0..." -ForegroundColor Cyan
 try {
@@ -219,6 +246,6 @@ foreach ($task in $telemetryTasks) {
     }
 }
 
-Write-Host "*** Windows Update is now targeting the Windows 11 24H2 update! ***" -ForegroundColor Green
+Write-Host "*** Windows Update is now targeting the Windows 11 $targetRelease update! ***" -ForegroundColor Green
 Write-Host "`n*** Done! ***" -ForegroundColor Green
 Write-Host "*** Please restart your computer for the changes to take effect. ***" -ForegroundColor Yellow
