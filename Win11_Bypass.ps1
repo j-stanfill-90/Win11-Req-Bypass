@@ -264,7 +264,7 @@ while ($true) {
         }
         "4" {
             Write-Host "Exiting..." -ForegroundColor Yellow
-            break
+            exit
         }
         default {
             Write-Host "Invalid selection. Please try again." -ForegroundColor Red
