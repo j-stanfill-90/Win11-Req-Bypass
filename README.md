@@ -2,21 +2,23 @@
 
 ## Bypass Windows 11 Installation & Update Restrictions
 
+**This is a more simplified version of the original Windows 11 bypass script. The target version functionality has been removed - you'll just apply the registry changes.**
+
 **Win11-Req-Bypass** is a PowerShell script that allows you to install and update Windows 11 on unsupported hardware by bypassing system requirements. It modifies the registry to remove installation restrictions and ensures compatibility with Windows Update.
 
 ### Features
-- Bypasses Windows Update compatibility checks to allow updates on unsupported devices.
-- Removes "System Requirements Not Met" watermark.
-- Enables Windows Update to fetch the latest Windows 11 version (24H2) or a user-specified version.
-- Disables Windows telemetry to prevent settings from reverting in the future.
-- Offers an interactive menu interface
+- Bypasses Windows Update compatibility checks to allow updates on unsupported devices
+- Removes "System Requirements Not Met" watermark
+- Disables Windows telemetry to prevent settings from reverting in the future
+- Simple 3-option menu interface (Reset Windows Update, Apply Bypass, Exit)
+- Automatic CPU compatibility checking for Windows 11 24H2 requirements
 
 ### How to Use
 
 #### Run Directly from the Web
 To execute the script quickly, open PowerShell as **Administrator** and run:
 ```powershell
-iwr -useb "https://raw.githubusercontent.com/Win11Modder/Win11-Req-Bypass/main/Win11_Bypass.ps1" | iex
+iwr -useb "https://raw.githubusercontent.com/j-stanfill-90/Win11-Req-Bypass/main/Win11_Bypass.ps1" | iex
 ```
 
 #### Download and Run Manually
