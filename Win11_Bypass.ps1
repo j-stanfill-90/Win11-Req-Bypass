@@ -32,13 +32,11 @@ function Show-MainMenu {
  /   /  \\   | /\  |\|    \    \ |     /" \_|\  /" \_|\     |: |_)  :)/   /   /|__/ \  /   /  \\  \  /" \   :) /" \   :)  
 |___/    \___|(__\_|_)\___|\____\)    (_______)(_______)    (_______/|___/   (_______)(___/    \___)(_______/ (_______/   
 ----------------------------------------------------------------------------------------
-                    Windows 11 Bypass & Update Tool
+                         Windows 11 Hardware Bypass Tool
 ----------------------------------------------------------------------------------------
 0 - Reset Windows Update and network settings
 1 - Apply registry tweaks (bypass Windows 11 restrictions)
-2 - Set Windows Update target release version
-3 - Remove Windows Update target release version
-4 - Exit
+2 - Exit
 '@
     Write-Host $menu -ForegroundColor Cyan
 }
@@ -127,45 +125,9 @@ function Reset-WindowsUpdate {
     Show-MainMenu
 }
 
-function Set-WUTargetRelease {
-    Write-Host "`n*** Configure Windows Update Target Release Version ***" -ForegroundColor Cyan
-    Write-Host "1 (or press Enter) - Set default target release version to 24H2"
-    Write-Host "2 - Set a custom target release version"
 
-    $choice = Read-Host "Select an option (1-2)"
-    $WinUpdatePath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"
 
-    if ($choice -eq "" -or $choice -eq "1") {
-        $targetRelease = "24H2"
-    } elseif ($choice -eq "2") {
-        $targetRelease = Read-Host "Enter the Windows 11 target release version (e.g 23H2, 24H2)"
-    } else {
-        Write-Host "Invalid selection." -ForegroundColor Red
-        return
-    }
 
-    Write-Host "Setting Windows Update target release to $targetRelease..." -ForegroundColor Cyan
-    if (!(Test-Path $WinUpdatePath)) {
-        New-Item -Path $WinUpdatePath -Force | Out-Null
-    }
-    New-ItemProperty -Path $WinUpdatePath -Name "ProductVersion" -Value "Windows 11" -PropertyType String -Force
-    New-ItemProperty -Path $WinUpdatePath -Name "TargetReleaseVersion" -Value 1 -PropertyType DWord -Force
-    New-ItemProperty -Path $WinUpdatePath -Name "TargetReleaseVersionInfo" -Value $targetRelease -PropertyType String -Force
-}
-
-function Remove-WUTargetRelease {
-    Write-Host "`n*** Removing Windows Update Target Release Version ***" -ForegroundColor Cyan
-    $WinUpdatePath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"
-    
-    if (Test-Path $WinUpdatePath) {
-        Remove-ItemProperty -Path $WinUpdatePath -Name "ProductVersion" -ErrorAction SilentlyContinue
-        Remove-ItemProperty -Path $WinUpdatePath -Name "TargetReleaseVersion" -ErrorAction SilentlyContinue
-        Remove-ItemProperty -Path $WinUpdatePath -Name "TargetReleaseVersionInfo" -ErrorAction SilentlyContinue
-        Write-Host "Target release version settings removed." -ForegroundColor Green
-    } else {
-        Write-Host "No target release version settings found." -ForegroundColor Yellow
-    }
-}
 
 function Set-BypassRegistryTweaks {
     Write-Host "`n*** Applying registry tweaks to bypass Windows 11 hardware restrictions ***" -ForegroundColor Cyan
@@ -240,29 +202,21 @@ function Wait-AfterInfo {
 # Main Menu Loop
 while ($true) {
     Show-MainMenu
-    $choice = Read-Host "Select an option (0-4)"
+    $choice = Read-Host "Select an option (0-2)"
 
     switch ($choice) {
         "0" {
             Reset-WindowsUpdate
             Wait-AfterInfo
-
         }
         "1" {
-            Set-WUTargetRelease
             Set-BypassRegistryTweaks
+            Write-Host "`n*** Registry tweaks applied successfully! ***" -ForegroundColor Green
+            Write-Host "Windows 11 hardware restrictions have been bypassed." -ForegroundColor Green
+            Write-Host "You can now install or update Windows 11 on unsupported hardware." -ForegroundColor Yellow
             Wait-AfterInfo
         }
         "2" {
-            Set-WUTargetRelease
-            Wait-AfterInfo
-        }
-        "3" {
-            Remove-WUTargetRelease
-            Wait-AfterInfo
-        
-        }
-        "4" {
             Write-Host "Exiting..." -ForegroundColor Yellow
             exit
         }
