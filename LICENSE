@@ -5,6 +5,15 @@
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 
+                     MODIFIED VERSION NOTICE
+
+ This is a modified version of the original Win11-Req-Bypass script.
+ Original work copyright by Win11Modder and contributors.
+ Modifications copyright (C) 2025 j-stanfill-90
+
+ This modified version removes target release version functionality
+ and simplifies the user interface to focus on core bypass features.
+
                             Preamble
 
   The GNU General Public License is a free, copyleft license for
