@@ -53,5 +53,9 @@ Windows 11 24H2 **requires x86-64-v2 CPU features**, including:
 
 If your CPU doesn’t support these, the script will detect it and **exit automatically**. This is a hard Windows requirement — it cannot be bypassed.
 
+### Credits
+This is a slightly modified version of Win11Modder's original Project
+
 ### License
 This script is provided as-is, without any warranties. Use it responsibly.
+
